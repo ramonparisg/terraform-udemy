@@ -2,3 +2,6 @@
 *.tfvars
 *.tfstate
 *.tfstate.*
+
+mykey
+mykey.*
