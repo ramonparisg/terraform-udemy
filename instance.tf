@@ -10,6 +10,8 @@ resource "aws_instance" "instance1" {
 
   # the public SSH key
   key_name = "${aws_key_pair.mykeypair.key_name}"
+
+  user_data = data.template_cloudinit_config.cloudinit-example.rendered
 }
 
 resource "aws_ebs_volume" "ebs-volume-1" {
@@ -22,7 +24,7 @@ resource "aws_ebs_volume" "ebs-volume-1" {
 }
 
 resource "aws_volume_attachment" "ebs-volume-1-attachment" {
-  device_name = "/dev/xvdh"
+  device_name = "${var.INSTANCE_DEVICE_NAME}"
   volume_id   = "${aws_ebs_volume.ebs-volume-1.id}"
   instance_id = "${aws_instance.instance1.id}"
 }
