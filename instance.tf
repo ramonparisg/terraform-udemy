@@ -12,7 +12,15 @@ resource "aws_instance" "instance1" {
   key_name = "${aws_key_pair.mykeypair.key_name}"
 
   user_data = data.template_cloudinit_config.cloudinit-example.rendered
+
+  depends_on = [aws_internet_gateway.main-gw]
 }
+
+resource "aws_eip" "example-ip" {
+  instance = "${aws_instance.instance1.id}"
+  vpc      = true
+}
+
 
 resource "aws_ebs_volume" "ebs-volume-1" {
   availability_zone = "${var.AWS_REGION}a"
@@ -24,13 +32,14 @@ resource "aws_ebs_volume" "ebs-volume-1" {
 }
 
 resource "aws_volume_attachment" "ebs-volume-1-attachment" {
-  device_name = "${var.INSTANCE_DEVICE_NAME}"
-  volume_id   = "${aws_ebs_volume.ebs-volume-1.id}"
-  instance_id = "${aws_instance.instance1.id}"
+  device_name  = "${var.INSTANCE_DEVICE_NAME}"
+  volume_id    = "${aws_ebs_volume.ebs-volume-1.id}"
+  instance_id  = "${aws_instance.instance1.id}"
+  skip_destroy = true
 }
 
 
 output "public-ip" {
-  value = "${aws_instance.instance1.public_ip}"
+  value = "${aws_eip.example-ip.public_ip}"
 }
 
