@@ -35,11 +35,15 @@ resource "aws_volume_attachment" "ebs-volume-1-attachment" {
   device_name  = "${var.INSTANCE_DEVICE_NAME}"
   volume_id    = "${aws_ebs_volume.ebs-volume-1.id}"
   instance_id  = "${aws_instance.instance1.id}"
-  skip_destroy = true
+  skip_destroy = false
 }
 
 
 output "public-ip" {
   value = "${aws_eip.example-ip.public_ip}"
+}
+
+output "rds" {
+  value = aws_db_instance.mariadb.endpoint
 }
 
