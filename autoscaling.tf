@@ -6,6 +6,10 @@ resource "aws_launch_configuration" "example-launchconfig" {
   instance_type   = "t2.micro"
   key_name        = aws_key_pair.mykeypair.key_name
   security_groups = [aws_security_group.allow-ssh.id]
+  user_data       = "#!/bin/bash\napt-get update\napt-get -y install nginx\nMYIP=`ifconfig | grep 'addr:10' | awk '{ print $2 }' | cut -d ':' -f2`\necho 'this is: '$MYIP > /var/www/html/index.html"
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Este resource es la manera en la que será tratada este Autoscaling. 
@@ -14,10 +18,11 @@ resource "aws_autoscaling_group" "example-autoscaling" {
   name                      = "example-autoscaling"
   vpc_zone_identifier       = [aws_subnet.main-public-1.id, aws_subnet.main-public-2.id]
   launch_configuration      = aws_launch_configuration.example-launchconfig.name
-  min_size                  = 1
+  min_size                  = 2
   max_size                  = 2
-  health_check_grace_period = 300 # Define cada cuánto tiempo debe revisar la salud. En segundos
-  health_check_type         = "EC2"
+  health_check_grace_period = 300   # Define cada cuánto tiempo debe revisar la salud. En segundos
+  health_check_type         = "ELB" # Quién (o donde) hace el check
+  load_balancers            = [aws_elb.my-elb.name]
   force_delete              = true
 
   tag {
@@ -26,4 +31,10 @@ resource "aws_autoscaling_group" "example-autoscaling" {
     propagate_at_launch = true
   }
 }
+
+output "ELB" {
+  value = aws_elb.my-elb.dns_name
+}
+
+
 
